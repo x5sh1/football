@@ -12,13 +12,9 @@ class Player {
 
         this.svgText = document.createElementNS("http://www.w3.org/2000/svg", "text");
         this.svgText.textContent = positionName;
-        this.svgText.setAttribute("y", Number(cy)+5);
+        this.svgText.setAttribute("x", cx);
+        this.svgText.setAttribute("y", cy);
         this.svgText.setAttribute("fill", "white");
-        if (positionName.length == 2) {
-            this.svgText.setAttribute("x", Number(cx) - 11);
-        } else {
-            this.svgText.setAttribute("x", cx - 5);
-        }
     }
 
     goLine(playground) {
@@ -26,9 +22,3 @@ class Player {
         playground.appendChild(this.svgText);
     }
 }
-
-const playground = document.body.querySelector("svg");
-// playground.addEventListener("click", function(e) {
-//     const positionName = prompt("Enter a position");
-//     new Player(positionName, e.clientX, e.clientY).goLine(playground);
-// });
