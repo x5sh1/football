@@ -1,6 +1,7 @@
 <!doctype html>
 <html>
     <head>
+        <link rel="stylesheet" href="../css/style.css" />
         <title>
             Football
         </title>
@@ -18,10 +19,20 @@
             <rect x="0" y="400" width="500" height="50" fill="#33FF00" />
             <rect x="0" y="450" width="500" height="50" fill="#33CC66" />
             <line x1="0" y1="350" x2="500" y2="350" stroke="black" stroke-width="3"/>
-            <circle cx="250" cy="400" r="20" stroke="black" fill="black">
-                <animate attributeName="cy" from="400" to="300" dur="3s"/>
-            </circle>
+            <!-- <circle cx="250" cy="400" r="20" stroke="black" fill="black">
+                <animateMotion
+                dur="5s"
+                path="
+                M0,0
+                l0,-200
+                l200,0
+                " />
+            </circle> -->
         </svg>
+        <div class="controller_style">
+            <button id="addPlayerButton">Add Player</button>
+            <button id="addPathButton">Add Path</button>
+        </div>
         <script src="../script/script.js"></script>
     </body>
 </html>
