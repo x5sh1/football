@@ -21,6 +21,7 @@ class Player {
         this.svgElement.setAttribute("r", "20");
         this.svgElement.setAttribute("stroke", "black");
         this.svgElement.setAttribute("fill", "black");
+        this.svgElement.setAttribute("id", this.playerId);
 
         this.svgText = document.createElementNS("http://www.w3.org/2000/svg", "text");
         this.svgText.textContent = positionName;
