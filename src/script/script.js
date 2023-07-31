@@ -1,4 +1,7 @@
+let playerIdCount = 1;
+let playerIdAndPlayerMap = {};
 class Player {
+    playerId;
     svgElement;
     svgText;
     initX;
@@ -7,6 +10,8 @@ class Player {
     pathList;
 
     constructor(positionName, cx, cy) {
+        this.playerId = playerIdCount;
+        playerIdCount++;
         this.initX = cx;
         this.initY = cy;
         this.pathList = [];
@@ -71,9 +76,6 @@ const PlaygroundStatusEnum = {
 let playgroundStatus = PlaygroundStatusEnum.DISPLAY;
 let focusedPlayer = null;
 
-let playerList = [];
-let playerId = 0;
-
 const playground = document.body.querySelector("svg");
 
 playground.addEventListener("click", function(e) {
@@ -84,7 +86,8 @@ playground.addEventListener("click", function(e) {
         }
         const tempPlayer = new Player(positionName, e.clientX, e.clientY);
         tempPlayer.goLine(playground);
-        playerList.push(tempPlayer);
+        playerIdAndPlayerMap[tempPlayer.playerId] = tempPlayer;
+        console.log(playerIdAndPlayerMap);
     } else if (PlaygroundStatusEnum.PALYER_FOCUSED == playgroundStatus) {
         if (focusedPlayer == null) {
             return;
