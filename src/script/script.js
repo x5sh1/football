@@ -1,5 +1,7 @@
 let playerIdCount = 1;
 let playerIdAndPlayerMap = {};
+let focusedPlayer = null;
+
 class Player {
     playerId;
     svgElement;
@@ -9,7 +11,10 @@ class Player {
     
     pathList;
 
+    focused
+
     constructor(positionName, cx, cy) {
+        this.focused = false;
         this.playerId = playerIdCount;
         playerIdCount++;
         this.initX = cx;
@@ -38,31 +43,43 @@ class Player {
         playground.appendChild(this.svgElement);
         playground.appendChild(this.svgText);
         this.svgElement.addEventListener("click", function(e) {
-            console.log(e.target);
-            if (PlaygroundStatusEnum.ADD_PATH ==! playgroundStatus) {
+            if (PlaygroundStatusEnum.PALYER_FOCUSED == playgroundStatus) {
+                var id = e.target.getAttribute("id");
+                if (id == focusedPlayer.id) {
+                    focusedPlayer.focused = false;
+                    focusedPlayer = null;
+                    playgroundStatus = PlaygroundStatusEnum.ADD_PATH;
+                }
+                return;
+            }
+            if (PlaygroundStatusEnum.ADD_PATH != playgroundStatus) {
                 return;
             }
             playgroundStatus = PlaygroundStatusEnum.PALYER_FOCUSED;
+            var id = e.target.getAttribute("id");
+            focusedPlayer = playerIdAndPlayerMap[id];
+            focusedPlayer.focused = true;
         });
     }
 
     addPath(newX, newY, playground) {
-        if (pathList.length == 0) {
+        if (this.pathList.length == 0) {
             const pathElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
             pathElement.setAttribute("stroke", "black");
             pathElement.setAttribute("fill", "none");
-            pathElement.setAttribute("d", "M0,0");
+            pathElement.setAttribute("d", "M" + this.initX +"," + this.initY);
             let diffX = newX - this.initX;
             let diffY = newY - this.initY;
-            dString = pathElement.getAttribute("d");
+            var dString = pathElement.getAttribute("d");
             dString += " l" + diffX + "," + diffY;
+            console.log(dString);
             pathElement.setAttribute("d", dString);
             playground.appendChild(pathElement);
         }
         let tempPosition = [];
-        tempPosition.insert(newX);
-        tempPosition.insert(newY);
-        pathList.insert(tempPosition);
+        tempPosition.push(newX);
+        tempPosition.push(newY);
+        this.pathList.push(tempPosition);
     }
 }
 
@@ -75,7 +92,6 @@ const PlaygroundStatusEnum = {
 }
 
 let playgroundStatus = PlaygroundStatusEnum.DISPLAY;
-let focusedPlayer = null;
 
 const playground = document.body.querySelector("svg");
 
@@ -88,11 +104,11 @@ playground.addEventListener("click", function(e) {
         const tempPlayer = new Player(positionName, e.clientX, e.clientY);
         tempPlayer.goLine(playground);
         playerIdAndPlayerMap[tempPlayer.playerId] = tempPlayer;
-        console.log(playerIdAndPlayerMap);
     } else if (PlaygroundStatusEnum.PALYER_FOCUSED == playgroundStatus) {
         if (focusedPlayer == null) {
             return;
         }
+        console.log(focusedPlayer);
         focusedPlayer.addPath(e.clientX, e.clientY, playground);
     }
 });
