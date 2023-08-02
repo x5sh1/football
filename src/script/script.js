@@ -6,20 +6,26 @@ class Player {
     playerId;
     svgElement;
     svgText;
+    pathElement
+
     initX;
     initY;
-    
-    pathList;
 
-    focused
+    currentX;
+    currentY;
+
+    focused;
+    pathEmpty;
 
     constructor(positionName, cx, cy) {
         this.focused = false;
+        this.pathEmpty = true;
         this.playerId = playerIdCount;
         playerIdCount++;
         this.initX = cx;
         this.initY = cy;
-        this.pathList = [];
+        this.currentX = cx;
+        this.currentY = cy;
         this.svgElement = document.createElementNS("http://www.w3.org/2000/svg", "circle");
         this.svgElement.setAttribute("cx", cx);
         this.svgElement.setAttribute("cy", cy);
@@ -32,6 +38,7 @@ class Player {
         this.svgText.textContent = positionName;
         this.svgText.setAttribute("y", Number(cy)+5);
         this.svgText.setAttribute("fill", "white");
+        this.svgText.setAttribute("id", this.playerId);
         if (positionName.length == 2) {
             this.svgText.setAttribute("x", Number(cx) - 11);
         } else {
@@ -39,14 +46,15 @@ class Player {
         }
     }
 
-    goLine(playground) {
+    playerSet(playground) {
         playground.appendChild(this.svgElement);
         playground.appendChild(this.svgText);
         this.svgElement.addEventListener("click", function(e) {
             if (PlaygroundStatusEnum.PALYER_FOCUSED == playgroundStatus) {
                 var id = e.target.getAttribute("id");
-                if (id == focusedPlayer.id) {
+                if (id == focusedPlayer.playerId) {
                     focusedPlayer.focused = false;
+                    e.target.setAttribute("fill", "black");
                     focusedPlayer = null;
                     playgroundStatus = PlaygroundStatusEnum.ADD_PATH;
                 }
@@ -57,29 +65,56 @@ class Player {
             }
             playgroundStatus = PlaygroundStatusEnum.PALYER_FOCUSED;
             var id = e.target.getAttribute("id");
+            e.target.setAttribute("fill", "red");
             focusedPlayer = playerIdAndPlayerMap[id];
-            focusedPlayer.focused = true;
         });
     }
 
-    addPath(newX, newY, playground) {
-        if (this.pathList.length == 0) {
-            const pathElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            pathElement.setAttribute("stroke", "black");
-            pathElement.setAttribute("fill", "none");
-            pathElement.setAttribute("d", "M" + this.initX +"," + this.initY);
-            let diffX = newX - this.initX;
-            let diffY = newY - this.initY;
-            var dString = pathElement.getAttribute("d");
-            dString += " l" + diffX + "," + diffY;
-            console.log(dString);
-            pathElement.setAttribute("d", dString);
-            playground.appendChild(pathElement);
+    playerHut() {
+        if (this.pathElement == null) {
+            return;
         }
-        let tempPosition = [];
-        tempPosition.push(newX);
-        tempPosition.push(newY);
-        this.pathList.push(tempPosition);
+        var pathString = this.pathElement.getAttribute("d");
+        var pathList = pathString.split(" ");
+        pathString = "M0,0";
+        for (var i = 1; i < pathList.length; i++) {
+            console.log(pathList[i]);
+            pathString += " " + pathList[i];
+        }
+        var circleAnimateMotionElement = document.createElementNS("http://www.w3.org/2000/svg", "animateMotion");
+        circleAnimateMotionElement.setAttributeNS("http://www.w3.org/1999/xlink", "dur", "5s");
+        circleAnimateMotionElement.setAttributeNS("http://www.w3.org/1999/xlink", "path", pathString);
+
+        var textAnimateMotionElement = document.createElementNS("http://www.w3.org/2000/svg", "animateMotion");
+        textAnimateMotionElement.setAttributeNS("http://www.w3.org/1999/xlink", "dur", "5s");
+        textAnimateMotionElement.setAttributeNS("http://www.w3.org/1999/xlink", "path", pathString);
+
+        this.svgElement.appendChild(circleAnimateMotionElement);
+        this.svgText.appendChild(textAnimateMotionElement);
+        circleAnimateMotionElement.beginElement()
+        textAnimateMotionElement.beginElement()
+    }
+
+    addPath(newX, newY, playground) {
+        if (!this.focused) {
+            this.focused = true;
+            return;
+        }
+        if (this.pathEmpty) {
+            this.pathElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            this.pathElement.setAttribute("stroke", "black");
+            this.pathElement.setAttribute("fill", "none");
+            this.pathElement.setAttribute("d", "M" + this.initX +"," + this.initY);
+            this.pathEmpty = false;
+        }
+        let diffX = newX - this.currentX;
+        let diffY = newY - this.currentY;
+        var dString = this.pathElement.getAttribute("d");
+        dString += " l" + diffX + "," + diffY;
+        this.pathElement.setAttribute("d", dString);
+        playground.appendChild(this.pathElement);
+        this.currentX = newX;
+        this.currentY = newY;
     }
 }
 
@@ -102,13 +137,12 @@ playground.addEventListener("click", function(e) {
             return;
         }
         const tempPlayer = new Player(positionName, e.clientX, e.clientY);
-        tempPlayer.goLine(playground);
+        tempPlayer.playerSet(playground);
         playerIdAndPlayerMap[tempPlayer.playerId] = tempPlayer;
     } else if (PlaygroundStatusEnum.PALYER_FOCUSED == playgroundStatus) {
         if (focusedPlayer == null) {
             return;
         }
-        console.log(focusedPlayer);
         focusedPlayer.addPath(e.clientX, e.clientY, playground);
     }
 });
@@ -141,5 +175,16 @@ addPathButton.addEventListener("click", function(e) {
     } else {
         playgroundStatus = PlaygroundStatusEnum.DISPLAY;
         addPathButton.textContent = "Add Path";
+    }
+});
+
+const hutButton = document.getElementById("hutButton");
+hutButton.addEventListener("click", function(e) {
+    if (PlaygroundStatusEnum.DISPLAY != playgroundStatus) {
+        return;
+    }
+    for (var index = 1; index < playerIdCount; index++) {
+        console.log(playerIdAndPlayerMap[index]);
+        playerIdAndPlayerMap[index].playerHut();
     }
 });
